@@ -6,6 +6,11 @@ sortphotos.py
 Created on 3/2/2013
 Copyright (c) S. Andrew Ning. All rights reserved.
 
+Tweaked by Daniel Copeland to change the created and modified dates on Macs to the correct date.
+I needed this after some process went through and screwed up half of my picture.
+That is why I had to seek out software that would allow me to use the EXIF data in the first place.
+Feel free to use coding change as you would like.
+
 """
 
 import subprocess
@@ -206,7 +211,14 @@ class ExifTool(object):
             sys.stdout.write('No files to parse or invalid data\n')
             exit()
 
-
+def totimestamp(dt, epoch=datetime(1970,1,1)):
+    td = dt - epoch
+    # return td.total_seconds() ------ 
+    # Not sure why there is the problem, but for some reason my times were off
+    # by 7 hours.
+    # I fixed it for me by adding 7 hours to the time.
+    # I suspect it had something to do with timezones, but who has time for that...
+    return (td.microseconds + (td.seconds + ((td.days * 24) + 7) * 3600) * 10**6) / 1e6 
 # ---------------------------------------
 
 
@@ -405,7 +417,8 @@ def sortPhotos(src_dir, dest_dir, sort_format, rename_format, recursive=False,
                     shutil.copy2(src_file, dest_file)
             else:
                 shutil.move(src_file, dest_file)
-
+                backthen = totimestamp(date)
+                os.utime(dest_file, (backthen, backthen))
 
 
         if verbose:
